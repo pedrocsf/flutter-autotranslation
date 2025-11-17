@@ -1,0 +1,1 @@
+Text(AppLocalizations.of(context)!.hello);
