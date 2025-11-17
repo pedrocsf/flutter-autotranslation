@@ -23,7 +23,7 @@ def criar_mapa_de_substituicao(caminho_arquivo_arb: str) -> Dict[str, str]:
 
     return mapa_ordenado
 
-def processar_arquivos_na_pasta(pasta_alvo: str, mapa_substituicao: Dict[str, str], extensoes_permitidas: List[str]):
+def processar_arquivos_na_pasta(pasta_alvo: str, mapa_substituicao: Dict[str, str], extensoes_permitidas: List[str], caminhos_excluidos: List[str]):
     if not os.path.isdir(pasta_alvo):
         print(f"Erro: A pasta '{pasta_alvo}' não existe.")
         return
@@ -33,12 +33,19 @@ def processar_arquivos_na_pasta(pasta_alvo: str, mapa_substituicao: Dict[str, st
 
     print(f"Iniciando busca na pasta '{pasta_alvo}'...")
 
-    for root, _, files in os.walk(pasta_alvo):
+    caminhos_excluidos_abs = [os.path.abspath(p) for p in caminhos_excluidos]
+
+    for root, dirs, files in os.walk(pasta_alvo):
+        dirs[:] = [d for d in dirs if os.path.abspath(os.path.join(root, d)) not in caminhos_excluidos_abs]
+
         for nome_arquivo in files:
-            if not any(nome_arquivo.endswith(ext) for ext in extensoes_permitidas):
+            caminho_completo = os.path.join(root, nome_arquivo)
+
+            if os.path.abspath(caminho_completo) in caminhos_excluidos_abs:
                 continue
 
-            caminho_completo = os.path.join(root, nome_arquivo)
+            if not any(nome_arquivo.endswith(ext) for ext in extensoes_permitidas):
+                continue
             
             try:
                 with open(caminho_completo, 'r', encoding='utf-8') as f:
@@ -94,15 +101,22 @@ def main():
         default=".dart",
         help="Extensões de arquivo a serem processadas, separadas por vírgula. Padrão: .dart"
     )
+    parser.add_argument(
+        '--excluir',
+        nargs='*',
+        default=[],
+        help="Lista de arquivos ou pastas a serem ignorados durante a análise. Ex: lib/l10n.dart"
+    )
 
     args = parser.parse_args()
     
     extensoes = [ext.strip() for ext in args.ext.split(',')]
+    caminhos_excluidos = args.excluir
 
     mapa_substituicao = criar_mapa_de_substituicao(args.arb)
 
     if mapa_substituicao:
-        processar_arquivos_na_pasta(args.pasta, mapa_substituicao, extensoes)
+        processar_arquivos_na_pasta(args.pasta, mapa_substituicao, extensoes, caminhos_excluidos)
 
 if __name__ == "__main__":
     main()

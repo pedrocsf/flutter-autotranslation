@@ -1,1 +1,1 @@
-Text(AppLocalizations.of(context)!.hello);
+Text("Olá");
