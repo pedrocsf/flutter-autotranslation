@@ -58,7 +58,7 @@ def processar_arquivos_na_pasta(pasta_alvo: str, mapa_substituicao: Dict[str, st
             substituicoes_neste_arquivo = 0
 
             for valor_string, chave_arb in mapa_substituicao.items():
-                string_para_buscar = f'"{valor_string}"'
+                string_para_buscar = f"'{valor_string}'"
                 string_de_substituicao = f'AppLocalizations.of(context)!.{chave_arb}'
                 
                 ocorrencias = conteudo_modificado.count(string_para_buscar)
